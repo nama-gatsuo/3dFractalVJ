@@ -121,7 +121,7 @@ void main(){
         float d = clamp(dot(vec3(0.577), n), 0.1, 1.0);
         float a = 1.0 - c / 48.0;
 
-        outputColor = vec4(sqrt(vec3(0.2, 0.8, 1.0) * d * a), 1.0);
+        outputColor = vec4(sqrt(vec3(0.5, 0.92, 0.93) * d * a), 1.0);
     } else {
         outputColor = vec4(vec3(0.0), 1.0);
     }

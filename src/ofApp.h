@@ -11,7 +11,7 @@ public:
     void draw();
     
     void keyPressed(int key);
-
+    void windowResized(int w, int h);
 private:
     ofShader shader;
     ofVboMesh mesh;

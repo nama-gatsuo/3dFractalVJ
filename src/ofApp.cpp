@@ -4,14 +4,7 @@
 void ofApp::setup(){
     
     mesh.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
-    mesh.addVertex(ofVec3f(0, 0, 0));
-    mesh.addTexCoord(ofVec2f(0, ofGetHeight()));
-    mesh.addVertex(ofVec3f(0, ofGetHeight(), 0));
-    mesh.addTexCoord(ofVec2f(0, 0));
-    mesh.addVertex(ofVec3f(ofGetWidth(), 0, 0));
-    mesh.addTexCoord(ofVec2f(ofGetWidth(), ofGetHeight()));
-    mesh.addVertex(ofVec3f(ofGetWidth(), ofGetHeight(), 0));
-    mesh.addTexCoord(ofVec2f(ofGetWidth(), 0));
+    windowResized(ofGetWidth(), ofGetHeight());
     
     shader.load("shader/shader");
     shader.begin();
@@ -56,6 +49,32 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
+    
+    if (key == ' ') {
+        
+    } else if (key == 'f') {
+        ofToggleFullscreen();
+    }
+    
+}
+
+//--------------------------------------------------------------
+void ofApp::windowResized(int w, int h){
+    mesh.clearVertices();
+    mesh.clearTexCoords();
+
+    mesh.addVertex(ofVec3f(0, 0, 0));
+    mesh.addTexCoord(ofVec2f(0, ofGetHeight()));
+    mesh.addVertex(ofVec3f(0, ofGetHeight(), 0));
+    mesh.addTexCoord(ofVec2f(0, 0));
+    mesh.addVertex(ofVec3f(ofGetWidth(), 0, 0));
+    mesh.addTexCoord(ofVec2f(ofGetWidth(), ofGetHeight()));
+    mesh.addVertex(ofVec3f(ofGetWidth(), ofGetHeight(), 0));
+    mesh.addTexCoord(ofVec2f(ofGetWidth(), 0));
+    
+    shader.begin();
+    shader.setUniform2f("size", ofGetWidth(), ofGetHeight());
+    shader.end();
 
 }
 
