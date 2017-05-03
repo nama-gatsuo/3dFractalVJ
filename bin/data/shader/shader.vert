@@ -1,4 +1,4 @@
-#version 150
+#version 400
 precision mediump float;
 
 uniform mat4 modelViewProjectionMatrix;
