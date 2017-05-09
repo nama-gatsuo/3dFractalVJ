@@ -10,6 +10,7 @@ public:
     void setup();
     void update();
     void draw();
+    void renderRM();
     
     void keyPressed(int key);
     void windowResized(int w, int h);
@@ -21,7 +22,10 @@ private:
     ofVboMesh mesh;
     
     ofEasyCam cam;
+    ofFbo fbo;
     
+    bool isLoop = false;
+    bool isShowPanel;
     ofxPanel panel;
     ofParameter<float> t_mr2;
     ofParameter<float> t_fr2;

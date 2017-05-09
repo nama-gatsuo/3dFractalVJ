@@ -17,33 +17,52 @@ void ofApp::setup(){
     panel.add(t_fl.set("foldingLimit", 0.9, 0.01, 3.0));
     panel.add(t_scale.set("scale", -3.12, -5.0, 5.0));
     panel.add(t_rep.set("repeat", 0.0, 0.0, 8.0));
-    panel.add(t_offset.set("offset", ofVec3f(0.5), ofVec3f(-2.0), ofVec3f(2.0)));
+    panel.add(t_offset.set("offset", ofVec3f(0.5), ofVec3f(-20.0), ofVec3f(20.0)));
     
     t = 0.0;
     cPos.to(cam.getPosition()*0.1);
+    cPos.setSpeed(0.01);
+    
+    fbo.allocate(ofGetWidth(), ofGetHeight());
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    //t += dt.get();
     
-    cPos.update();
-    cam.setPosition(cPos);
-    cam.begin();
-    cam.end();
-    
-    mr2.to(t_mr2.get()); mr2.update();
-    fr2.to(t_fr2.get()); fr2.update();
-    fl.to(t_fl.get()); fl.update();
-    scale.to(t_scale.get()); scale.update();
-    rep.to(t_rep.get()); rep.update();
-    
-    offset.to(t_offset); offset.update();
+    if (isLoop) {
+        cPos.update();
+        cam.setPosition(cPos);
+        cam.begin();
+        cam.end();
+        
+        mr2.to(t_mr2.get()); mr2.update();
+        fr2.to(t_fr2.get()); fr2.update();
+        fl.to(t_fl.get()); fl.update();
+        scale.to(t_scale.get()); scale.update();
+        rep.to(t_rep.get()); rep.update();
+        
+        offset.to(t_offset); offset.update();
+        
+        renderRM();
+    }
     
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+    
+    fbo.draw(0,0);
+        
+    if (isShowPanel) panel.draw();
+    ofDrawBitmapString("FPS: " + ofToString(ofGetFrameRate()), 10, 40);
+    
+    
+}
+
+void ofApp::renderRM(){
+    
+    fbo.begin();
+    ofClear(0);
     
     shader.begin();
     shader.setUniform3f("cp", cam.getPosition());
@@ -57,8 +76,8 @@ void ofApp::draw(){
     mesh.draw();
     shader.end();
     
-    panel.draw();
-    //ofDrawBitmapString("FPS: " + ofToString(ofGetFrameRate()), 600, 40);
+    fbo.end();
+    
 }
 
 //--------------------------------------------------------------
@@ -68,6 +87,10 @@ void ofApp::keyPressed(int key){
         randomize();
     } else if (key == 'f') {
         ofToggleFullscreen();
+    } else if (key == 'h') {
+        isShowPanel = !isShowPanel;
+    } else if (key == 's') {
+        isLoop = !isLoop;
     }
     
 }
@@ -86,21 +109,26 @@ void ofApp::windowResized(int w, int h){
     mesh.addVertex(ofVec3f(ofGetWidth(), ofGetHeight(), 0));
     mesh.addTexCoord(ofVec2f(ofGetWidth(), 0));
     
+    fbo.clear();
+    fbo.allocate(ofGetWidth(), ofGetHeight());
+    
     shader.begin();
     shader.setUniform2f("size", ofGetWidth(), ofGetHeight());
     shader.end();
+    
+    renderRM();
 }
 
 void ofApp::randomize() {
-    ofVec3f v = ofVec3f(ofRandom(.0, 1.0),ofRandom(.0, 1.0),ofRandom(.0, 1.0));
+    ofVec3f v = ofVec3f(ofRandom(.0, 1.0),ofRandom(.0, 1.0),ofRandom(.0, 2.0));
     v.normalize();
-    v *= ofRandom(7.0, 13.0);
+    v *= ofRandom(8.0, 12.0);
     cPos.to(ofPoint(v.x, v.y, v.z));
     
-    t_mr2.set(ofRandom(0.0, 0.5));
-    t_fr2.set(ofRandom(0.8, 2.5));
-    t_fl.set(ofRandom(0.5, 1.0));
+    t_mr2.set(ofRandom(0.0, 2.0));
+    t_fr2.set(ofRandom(1.0, 3.5));
+    t_fl.set(ofRandom(0.5, 2.0));
     t_scale.set(ofRandom(-3.0, -2.5));
-    t_offset.set(ofVec3f(ofRandom(-1.0, 1.0)));
+    t_offset.set(ofVec3f(ofRandom(-1.0, 5.0),ofRandom(-1.0, 5.0),ofRandom(-1.0, 5.0)));
 }
 
