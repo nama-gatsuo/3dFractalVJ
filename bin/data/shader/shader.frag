@@ -16,50 +16,36 @@ uniform vec3 offset;
 
 float pixel_size;
 
-void sphereFold(inout vec3 z, inout mat3 dz){
-    float r2 = dot(z,z);
-	if (r2 < minRadius2) {
-		float temp = (fixedRadius2/minRadius2);
-		z *= temp;
-        dz *= temp;
-	} else if (r2 < fixedRadius2) {
-		float temp =(fixedRadius2/r2);
-        dz[0] = temp * (dz[0] - z * 2.0 * dot(z, dz[0]) / r2);
-        dz[1] = temp * (dz[1] - z * 2.0 * dot(z, dz[1]) / r2);
-        dz[2] = temp * (dz[2] - z * 2.0 * dot(z, dz[2]) / r2);
-		z *= temp;
-        dz *= temp;
-	}
+void sphereFold(inout vec3 z, inout float dz){
+    float r2 = dot(z, z);
+    if (r2 < minRadius2) {
+        float tmp = fixedRadius2 / minRadius2;
+        z *= tmp;
+        dz *= tmp;
+    } else if (r2 < fixedRadius2) {
+        float tmp = fixedRadius2 / r2;
+        z *= tmp;
+        dz *= tmp;
+    }
 }
 
-void boxFold(inout vec3 z, inout mat3 dz){
-    if (abs(z.x) > foldingLimit){ dz[0].x*=-1.; dz[1].x*=-1.; dz[2].x*=-1.; }
-    if (abs(z.y) > foldingLimit){ dz[0].y*=-1.; dz[1].y*=-1.; dz[2].y*=-1.; }
-    if (abs(z.z) > foldingLimit){ dz[0].z*=-1.; dz[1].z*=-1.; dz[2].z*=-1.; }
-	z = clamp(z, -foldingLimit, foldingLimit) * 2.0 - z;
+void boxFold(inout vec3 z, inout float dz){
+    z = clamp(z, - foldingLimit, foldingLimit) * 2.0 - z;
 }
 
 float DF(vec3 z){
     z.xy = mod(z.xy + vec2(rep * 0.5), rep) - rep * 0.5;
+    float dr = 1.0;
 
-    mat3 dz = mat3(
-        1.0,0.0,0.0,
-        0.0,1.0,0.0,
-        0.0,0.0,1.0
-    );
+    for (int n = 0; n < 20; n++) {
 
-	vec3 c = z;
-	mat3 dc = dz;
-	for (int n = 0; n < 15; n++) {
-		boxFold(z, dz);
-		sphereFold(z, dz);
-		z *= scale;
-		dz = mat3(dz[0]*scale, dz[1]*scale, dz[2]*scale);
-		z += c*offset;
-	    dz +=matrixCompMult(mat3(offset, offset, offset), dc);
-		if (length(z) > 1000.0) break;
-	}
-	return dot(z,z) / length(z*dz);
+        boxFold(z, dr);
+        sphereFold(z, dr);
+
+        z = scale * z + offset;
+        dr = dr * abs(scale) + 1.0;
+    }
+    return length(z) / abs(dr);
 }
 
 vec2 intersect(in vec3 ro, in vec3 rd){
@@ -71,14 +57,14 @@ vec2 intersect(in vec3 ro, in vec3 rd){
     float os = 0.0;
     float s = 0.0;
 
-    for (int i = 0; i < 48; i++) {
+    for (int i = 0; i < 60; i++) {
 
-        if (d < pixel_size * t || t > 20.0){
+        if (d < pixel_size * t || t > 40.0){
         } else {
             d = DF(ro + t * rd);
 
             if (d > os) {
-                os = 0.4 * d * d / pd;
+                os = 0.8 * d * d / pd;
                 s = d + os;
                 pd = d;
             } else {
@@ -142,15 +128,19 @@ vec3 lighting(vec3 p, vec3 rd, float ps){
     return col;
 }
 
-vec3 post(vec3 col){
-    col = pow(clamp(col, 0.0, 1.0), vec3(0.45));
+vec3 post(vec3 col, vec2 q){
+    col = pow(clamp(col, 0.0, 1.0), vec3(0.55));
     col = col * 0.6 + 0.4 * col * col * (3.0 - 2.0 * col);
-    col=mix(col, vec3(dot(col, vec3(0.33))), -0.5);
+    col = mix(col, vec3(dot(col, vec3(0.33))), -0.5);
+    col *= 0.5 + 0.5 * pow(19.0 * q.x * q.y * (1.0 - q.x) * (1.0 - q.y), 0.7);
     return col;
 }
 
 void main(){
-    vec2 uv = (vTexCoord * 2.0 - size) / min(size.x, size.y);
+    vec2 q = vTexCoord / size;
+    vec2 uv = 2.0 * q - 1.0;
+    uv.x *= size.x / size.y;
+
     pixel_size = 1.0 / (size.y * 2.8);
 
     float rad = 3.0 + 0.4 * sin(time);
@@ -164,7 +154,7 @@ void main(){
     vec3 p = ro;
 
     vec2 result = intersect(ro, rd);
-    vec3 col = vec3(0.0);
+    vec3 col = vec3(0.7);
     float t = result.x, d = result.y;
 
     if (d < pixel_size * t) {
@@ -172,5 +162,5 @@ void main(){
         col = lighting(p, rd, pixel_size * t) * vec3(1.0, 1.1, 1.3) * 0.2;
         col = mix(col, vec3(0.0), 1.0 - exp(-0.001*t*t));
     }
-    outputColor = vec4(post(col), 1.0);
+    outputColor = vec4(post(col, q), 1.0);
 }
