@@ -52,10 +52,9 @@ void ofApp::update(){
 void ofApp::draw(){
     
     fbo.draw(0,0);
-        
+    
     if (isShowPanel) panel.draw();
     ofDrawBitmapString("FPS: " + ofToString(ofGetFrameRate()), 10, 40);
-    
     
 }
 
@@ -83,15 +82,10 @@ void ofApp::renderRM(){
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
     
-    if (key == ' ') {
-        randomize();
-    } else if (key == 'f') {
-        ofToggleFullscreen();
-    } else if (key == 'h') {
-        isShowPanel = !isShowPanel;
-    } else if (key == 's') {
-        isLoop = !isLoop;
-    }
+    if (key == ' ') randomize();
+    else if (key == 'f') ofToggleFullscreen();
+    else if (key == 'h') isShowPanel = !isShowPanel;
+    else if (key == 's') isLoop = !isLoop;
     
 }
 

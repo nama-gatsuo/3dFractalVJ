@@ -24,7 +24,7 @@ private:
     ofEasyCam cam;
     ofFbo fbo;
     
-    bool isLoop = false;
+    bool isLoop = true;
     bool isShowPanel;
     ofxPanel panel;
     ofParameter<float> t_mr2;
